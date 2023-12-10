@@ -1,0 +1,303 @@
+---
+title: "Final"
+author: "Kwasi Mensah"
+date: "2022-12-21"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Author: Kwasi Mensah
+Final
+Output: pdf_document
+Attribution statement:
+
+I did the homework by myself, with help from the book and the professor and the following sources:
+https://www.r-tutor.com/elementary-statistics/multiple-linear-regression/estimated-multiple-regression-equation
+https://www.displayr.com/variance-inflation-factors-vifs/
+
+#R Markdown
+#Run these three functions to get a clean test of homework code
+````{r}
+dev.off() #Clear the graph window
+cat('\014') #Clear the console
+rm(list = ls()) #Clear user objects from the environment
+````
+
+
+#R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+############################################################################
+
+1.	How have U.S. vaccination rates varied over time? Are vaccination rates increasing or decreasing? Which vaccination has the highest rate at the conclusion of the time series? Which vaccination has the lowest rate at the conclusion of the time series? Which vaccine has the greatest volatility? 
+
+````{r}
+load("C:/Users/lmori/Downloads/allSchoolsReportStatus.RData")
+load("C:/Users/lmori/Downloads/districts10.RData")
+load("C:/Users/lmori/Downloads/usVaccines.RData")
+par(mar = c(1, 1, 1, 1))
+summary(usVaccines)
+tail(usVaccines)
+plot(usVaccines, xlab="Year", main="US Vaccition Rates, 1980-2017")
+#U.s vaccination rates did not vary much over time, the rate tended to remain more or less stagnant after 1990 other than the rate of the HepB_BD vaccine which increased over time before dropping toward the end of the time series. 
+
+#U.S vaccination rates increased over time then became more or less stagnant. 
+#The DTP1 vaccine had the highest rate at the conclusion of the time series.
+#The HepB_BD vaccine had the lowest vaccination rate at the end of the time series.
+
+
+#Time-Series in One Chart
+is.ts(usVaccines)
+ts.plot(usVaccines, col = 1:5,  xlab="Year", ylab="Vaccination Rates", main="US Vaccition Rates, 1980-2017")
+legend("topleft", colnames(usVaccines), lty=1, col = 1:5, bty ="n")
+
+diff1<-diff(usVaccines)
+plot(diff1)
+#   When we remove the trend component and see the graphs after differencing, we see that over time vaccination rates remained stagnant for the most part,  other than HepB_BD vaccine  over the selected time period(1980-2017). We can see that all the vaccines rates dropped in the early years between 1985 and 1990. We can see that there is an increase in vaccination rate between 1985-1990 for the DTP1, Pol3,MCV1, and Hib3 vaccines. We see that there was a jump in the vaccination rates of the HepB_BD vaccine between 2000 and 2005. 
+
+
+
+runTStests1 <- function (testSeries, seriesName) {
+  # The basics
+  print(seriesName)
+  ts.plot(testSeries, main="1993 - 2017 Vaccines") 
+  print("Amount of decline Over the years")
+  print(max(testSeries) - min(testSeries))
+  print("Total change in trend:")
+  print(testSeries[length(testSeries)] - testSeries[1])
+  print("Max value:")
+  print(max(testSeries))
+  print("Min value:")
+  print(min(testSeries))
+} 
+######### Function for Stationarity and Volatility#########
+runTStests2 <- function (testSeries, seriesName) {
+
+  # Examine stationarity
+  diffTestSeries <- diff(testSeries[,seriesName])
+  diffTestSeries
+  acf(diffTestSeries, main="ACF: Differenced Series")
+  require(tseries)
+  a1<-adf.test(diffTestSeries)
+  a1
+
+  # Look at volatility
+  plot(diffTestSeries, main="Differenced Series")
+  print("Overall SD of differenced series:")
+  print(sd(diffTestSeries))
+  library(changepoint)
+  cptOut <- cpt.var(diffTestSeries, method = "PELT")
+  print(cptOut)
+  plot(cptOut, main="Variance Changepoint Plot")
+  
+}
+
+######################################################################
+# MCV1
+usVaccines1<- data.frame(usVaccines)
+testSeries1 <- ts(usVaccines1$MCV1 , frequency = 12)
+runTStests1(testSeries1,"MCV1" )
+
+testSeries1_1 <- ts(usVaccines1, frequency = 12)
+runTStests2(testSeries1_1,"MCV1" )
+
+
+# Hib3
+testSeries2 <- ts(usVaccines1$Hib3, frequency = 12)
+runTStests1(testSeries2,"Hib3" )
+testSeries2_1 <- ts(usVaccines1, frequency = 12)
+runTStests2(testSeries2_1,"Hib3" )
+
+# Pol3
+testSeries3 <- ts(usVaccines1$Pol3, frequency = 12)
+runTStests1(testSeries3,"Pol3" )
+testSeries3_1 <- ts(usVaccines1, frequency = 12)
+runTStests2(testSeries3_1,"MCV1" )
+
+#HepB_BD
+testSeries4 <- ts(usVaccines1$HepB_BD, frequency = 12)
+runTStests1(testSeries4,"HepB_BD" )
+testSeries4_1 <- ts(usVaccines1, frequency = 12)
+runTStests2(testSeries4_1,"MCV1" )
+
+
+# DTP1
+testSeries5 <- ts(usVaccines1$DTP1, frequency = 12)
+runTStests1(testSeries5,"DTP1" )
+testSeries5_1 <- ts(usVaccines1, frequency = 12)
+runTStests2(testSeries5_1,"DTP1" )
+
+
+#The Hib3 vaccine had the highest overall SD of differenced series being 8.347106, thus having the greatest volatility. 
+
+# When we plot the differencing trends we see these difference over the subjected time period.  The red line  in the graph signifies the change-point location. The change-point shows us where there is a significant shift occurs in the mean level during a certain period of time.
+````
+
+  
+
+
+ 2.	What proportion of public schools reported vaccination data? What proportion of private schools reported vaccination data? Was there any credible difference in overall reporting proportions between public and private schools? 
+
+````{r}
+#Contingency Table
+ft1 <- ftable(allSchoolsReportStatus, row.vars = 2, col.vars = "reported")
+ft1
+total_reported<-1397+5584+148+252
+#What proportion of public schools reported vaccination data?
+(5584/total_reported)*100
+#About 76% of public schools reported vaccination data.
+
+
+
+#What proportion of private schools reported vaccination data?
+(1397/total_reported)*100
+#About 19% of private schools reported vaccination data.
+
+
+#Was there any credible difference in overall reporting proportions between public and private schools? 
+chisq.test(ft1,correct=F)
+
+#This is a standard null hypothesis test shows us the chi-squared value of 402.97 with a p-value of 2.2e-16 which is well below our alpha threshold of p<.05. As a result we will reject the null hypothesis in support of the alternative hypothesis of credible differences in overall reporting proportions between public and private schools.
+library(BayesFactor)
+library(BEST)
+ctBFout <-contingencyTableBF(ft1,sampleType = "poisson",posterior = F)
+ctBFout
+#When we take the Bayesian approach to the Chi-Square Test we get the Bayes Factor of 1.150548e+69:1  in favor of the alternative hypothesis of credible differences in overall reporting proportions between public and private schools due the factor being in excess of our threshold of 3:1.
+````
+3.	What are 2013 vaccination rates for individual vaccines (i.e., DOT, Polio, MMR, and HepB) in California public schools?  How do these rates for individual vaccines in California districts compare with overall US vaccination rates (make an informal comparison to the final observations in the time series)? 
+
+````{r}
+summary(districts)
+#Find individual rates for vaccines in California public schools 2013
+#DTP vaccine rate 89.87%
+100-(mean(districts$WithoutDTP))
+#Polio vaccine rate 90.25%
+100-(mean(districts$WithoutPolio))
+#MMR vaccine rate 89.82%
+100-(mean(districts$WithoutMMR))
+#Hepatitis B vaccine rate 92.26%
+100-(mean(districts$WithoutHepB))
+summary(usVaccines)
+tail(usVaccines)
+print(usVaccines[34,])
+
+#   When we compare the individual vaccines in California districts with the overall US vaccination rates we could take a look at their averages in addition to taking a closer look at the rates in the US during 2013 specifically. We see that for the Measles vaccine the average rate of about 92% is which is close to the mean of the Measles vaccine of the overall US vaccination rate of 89%%. We also see that the DTP vaccine average rate in California was around 90% compared to that of the overall Us vaccination time series average DTP vaccination rate of about 94%. When we look at Polio vaccine for California we see an average rate of about 90% when compared to the that of the usVaccines data set with an average mean of about 87%. In addition when we look at the average rates of the Hepatitis B vaccination rates we find interesting results. 
+#   We see that average rate for the Hepatitis B vaccine in California public schools was about 92% when compare to the vaccination rates for the USvaccines data set has an average of about 34%, this will cause us to look at our time series to compare actual estimated rates during the 2013 year. We do notice in out time series that there is a very large spike in the vaccination rates of the Hepatitis B vaccine over the years. If we take a further look at our time series we see the rates for the year 2013 for DTP1 being 98%, HepB 74%, Pol3, 93%, and MCv1 92%. These rates for the overall US are much closer when comparing the time series to the vaccination rates of the California public school districts. Thus when we look at the plotted time series for HepB we can assume that California's high vaccination rate in Hepatitis B had an effect of some kind on the overall US Vaccination rate for Hepatitis B increasing around that period.   
+
+
+
+
+````
+
+4.	Among districts, how are the vaccination rates for individual vaccines related? In other words, if students are missing one vaccine are they missing all of the others?
+
+````{r}
+is.ts(districts)
+districts10N<- districts[,-1]
+districts10N<- data.frame(districts10N)
+cor1<-cor(districts10N[1:4]) 
+cor1
+library(ggcorrplot)
+ggcorrplot(cor1,hc.order = TRUE,lab = TRUE)
+#If there is a percentage of students who are missing one vaccine are they missing all of the others we can see this in the correlation matrix that this idea may be true due to the high positive correlation between each of the variables pertaining not having a specific vaccine. We can assume that this may be because of percentage of students enrolled with belief exceptions, but we would have to do more research to confirm this. 
+````
+
+
+
+
+5.	What variables predict whether or not a district’s reporting was complete?
+
+
+````{r}
+#Change Districtcomplete column into numeric values. 
+districts10<-districts
+districts10$DistrictComplete<-as.numeric(districts10$DistrictComplete)
+#view(districts10) #True = 1 False = 0
+districts10N<-data.frame(scale(districts10[,-1],center=T,scale = F))
+
+#Linear Regression
+regg1<- lm(DistrictComplete ~ PctChildPoverty + PctFreeMeal+ PctFamilyPoverty+ Enrolled+ TotalSchools, data=districts10)
+summary(regg1)
+
+# The results show the the Enrolled P-value 9.14e-08 and  TotalSchools P-value 5.88e-09variables predict predict whether or not a district’s reporting was complete.  These variables P-values are under our threshold of .05, in addition our overall regression analysis has a p-value of 8.749e-13 meaning that our overall analysis is statically significant, and we can reject the null hypothesis in support of the alternative hypothesis.
+
+
+
+#library(BEST)
+#library(BayesFactor)
+
+#Bayes Approach to Linear Regression
+reggbf1 <- lmBF(DistrictComplete ~ PctChildPoverty + PctFreeMeal+ PctFamilyPoverty+ Enrolled+ TotalSchools, data=districts10N)
+summary(reggbf1)
+
+#   With the Bayes approach to linear regression we get a Bayes Factor of 3017311149 , which is which is well over the odds cut off of 3:1. This analysis results support our alternative hypothesis, and we will as a result reject the null hypothesis. This lines up with our liner regression as our analysis had a p-value of 8.749e-13, which is lower than .05, thus we will reject the null hypothesis as well, in support with our alternative hypothesis
+
+
+#General Linear Model
+reg1_1 <- glm(DistrictComplete ~ PctChildPoverty + PctFreeMeal+ PctFamilyPoverty+ Enrolled+ TotalSchools, data=districts10, family = binomial())
+summary(reg1_1)
+
+# The results in our general linear model show the the  Enrolled P-value 0.012984  , TotalSchools P-value 0.017414  variables predict whether or not a district’s reporting was complete.  These variables P-values are under our threshold of .05, which are the same variables from our regression model that we found to be the predictors in support of our alternative hypothesis.
+
+#Bayseian Estimation of Logistic Regression
+library(MCMCpack)
+regbf1_1<- MCMClogit(DistrictComplete ~ PctChildPoverty + PctFreeMeal+ PctFamilyPoverty+ Enrolled+ TotalSchools, data=districts10 )
+summary(regbf1_1)
+
+# With the Bayes approach to linear regression the 95% HDI ranges for the Enrolled predictor is 0.0007954 to 0.003491  with a mean of 0.00217  which is very close to the coefficient results from the general linear regression of 0.002184. With the Bayes approach to linear regression the 95% HDI ranges for the hp(Gross horsepower) predictor is -0.3386296 to -0.096965, with a mean of-0.213030 which is very close to the coefficient results from the general linear regression of -0.21778. Since none of the interval pass 0 our results are statistically significant, and we can reject the null hypothesis, in support of the alternative hypothesis. 
+
+# We can get a more detailed view of these HDIs in the graphs belows
+plot(regbf1_1)
+
+````
+
+
+
+6.	What variables predict the percentage of all enrolled students with completely up-to-date vaccines?
+
+````{r}
+reg3 <- lm(PctUpToDate ~ PctChildPoverty + PctFreeMeal+ PctFamilyPoverty+Enrolled+ TotalSchools, data=districts10)
+summary(reg3)
+# The results show the the PctFamilyPoverty P-value 0.002187 , PctFreeMeal P-value 0.000726, Enrolled P-value 0.012984  , TotalSchools P-value 0.017414  variables predict the percentage of all enrolled students with completely up-to-date vaccines.  These variables P-values are under our threshold of .05, in addition our overall regression analysis has a p-value of 2.247e-13 meaning that our overall analysis is statically significant, and we can reject the null hypothesis, supporting the alternative hypothesis of PctFamilyPoverty, PctFreeMeal, TotalSchools, and Enrolled variables predict the percentage of all enrolled students with completely up-to-date vaccines.
+
+regbf3<-lmBF(PctUpToDate ~ PctChildPoverty + PctFreeMeal+PctFamilyPoverty+Enrolled+ TotalSchools, data=districts10N)
+summary(regbf3)
+
+#With the Bayes approach to linear regression we get a Bayes Factor of 11886710731  which is which is well over the odds cut off of 3:1. This analysis results support our alternative hypothesis, and we will as a result reject the null hypothesis. This lines up with our liner regression as our analysis had a p-value of 2.247e-13, which is lower than .05, thus we will reject the null hypothesis as well, in support with our alternative hypothesis that PctFamilyPoverty, PctFreeMeal, TotalSchools, and Enrolled variables predict the percentage of all enrolled students with completely up-to-date vaccines.  
+
+````
+7.	What variables predict the percentage of all enrolled students with belief exceptions?
+````{r}
+# Linear Regression
+reg4<-lm(PctBeliefExempt ~ PctChildPoverty + PctFreeMeal+ PctFamilyPoverty+Enrolled+ TotalSchools, data=districts10N)
+summary(reg4)
+# The results show the the PctFamilyPoverty P-value 0.002671, PctFreeMeal P-value 1.35e-09, and PctChildPoverty P-value 0.000688 , variables predict the percentage of all enrolled students with belief exceptions.  These variables P-values are under our threshold of .05, in addition our overall regression analysis has a p-value of 2.2e-16 meaning that our overall analysis is statically significant, and we can reject the null hypothesis in support of the alternative hypothesis. 
+
+# Bayes Approach to Linear Regression 
+regbf4 <- lmBF(PctBeliefExempt ~ PctChildPoverty + PctFreeMeal+ PctFamilyPoverty+Enrolled+ TotalSchools, data=districts10N)
+summary(regbf4)
+
+#With the Bayes approach to linear regression we get a Bayes Factor of 8.276841e+14, which is which is well over the odds cut off of 3:1. This analysis results support our alternative hypothesis, and we will as a result reject the null hypothesis. This lines up with our liner regression as our analysis had a p-value of 2.2e-16, which is lower than .05, thus we will reject the null hypothesis as well, in support with our alternative hypothesis that PctFamilyPoverty, PctFreeMeal, PctChildPoverty, variables predict the percentage of all enrolled students with belief exceptions.   . 
+library(car)
+vif(reg4)
+#As previously stated, a "Rule of Thumb" we could use when interpreting vif() is that a value of 1 means that the predictor variable is not correlated with other variables. The higher the value, the greater the correlation of the variable with other variables. We see that the PctFamilyPoverty, PctFreeMeal, PctChildPoverty variables, that predict the percentage of all enrolled students with belief exceptions all have low valued VIF scores while the two variable that were not correlated to the outcome variable have similar extremely high VIF scores. 
+````
+
+
+ 8.	What’s the big picture, based on all of the foregoing analyses? The staff member in the state legislator’s office is interested to know how to allocate financial assistance to school districts to improve both their vaccination rates and their reporting compliance. What have you learned from the data and analyses that might inform this question?
+
+````{r}
+#   When we look at the districts data set as a sample population we see that there is an average of about 88% of student who have their vaccinations up to date. We see that the variable PctFamilyPoverty comes up as a statistically significant predictor to both the PctUpToDate variable which is the percentage of enrolled students with up to date vaccines, and PctBeliefExempt which is the percentage of all enrolled students with belief exceptions. 
+#   We believe that a good idea for state legislators to allocate financial assistance to school districts in a few areas as suggestions. For starters there is a high correlation that if a student is missing one vaccination they is a high chance they are missing all, and we see the number of enrolled students is a predictor for this variable. We believe putting some financial assistance in enrollment effort would help increase the percentage of completed vaccine reporting. In addition we see the area of poverty plays a role whether or not students are vaccinated, we believe investing in free vaccination sites and programs for student would help legislators reach their goals of improving both their vaccination rates and their reporting compliance. We also believe that it may help in decreasing the average of students who have beliefs exceptions, who may in actuality have issues affording the fees for the vaccine for their families. 
+#   We also see that the there is a large average of students who are eligible for free meals, this variable came up a predictor for the percentage of student who are up to date with their vaccinations. We can conclude that further assistance in free student meals will both increase enrollment rates thus increasing the compliance reporting and student vaccination rates. In addition a good measure may be to host more educational programs of the benefits and myths of vaccines to decrease the number of student with belief exceptions. 
+#   We feel that the big picture is that a large number of student have their vaccines, which is almost as high as the Us vaccination rates between 1980-2017. We can also see that there is a correlation when a student is missing a vaccine chances are they are missing all of their vaccine. We see that there are reasons such as poverty, schools actual reporting was complete, and belief exceptions, but that only looks to be the reason why a small percentage of students do not have their vaccine and it is something that we should do further research in.
+
+````
